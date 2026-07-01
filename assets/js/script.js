@@ -27,7 +27,8 @@ document.addEventListener('DOMContentLoaded', function () {
             objectiveCont.innerHTML = '';
             constraintsCont.innerHTML = '';
             if (formContainer.style.display === 'block') {
-                backToStep1();
+                formContainer.style.display = 'none';
+                langkahAwal.style.display = 'block';
             }
             if (this.value === 'grafik') {
                 numVarsInput.value = 2;
@@ -80,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function () {
         generateObjective(n);
         generateConstraints(n, m);
 
-        problemForm.action = (method === 'grafik') ? 'process_grafik.php' : 'process.php';
+        problemForm.action = 'process.php';
 
         langkahAwal.style.display = 'none';
         formContainer.style.display = 'block';
@@ -142,26 +143,16 @@ document.addEventListener('DOMContentLoaded', function () {
         constraintsCont.innerHTML = html;
     }
 
-    function backToStep1() {
+    btnGenerate.addEventListener('click', generateForm);
+    btnBack.addEventListener('click', function () {
         formContainer.style.display = 'none';
         langkahAwal.style.display = 'block';
-    }
-
-    btnGenerate.addEventListener('click', generateForm);
-    btnBack.addEventListener('click', backToStep1);
-
-    numVarsInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            generateForm();
-        }
     });
 
-    numConstInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            generateForm();
-        }
+    [numVarsInput, numConstInput].forEach(function (el) {
+        el.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); generateForm(); }
+        });
     });
 
 });

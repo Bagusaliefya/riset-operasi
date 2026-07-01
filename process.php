@@ -1,81 +1,64 @@
 <?php
 session_start();
 
-unset($_SESSION['hasil']);
-unset($_SESSION['error']);
+unset($_SESSION['hasil'], $_SESSION['hasilGrafik'], $_SESSION['error']);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: index.php');
     exit;
 }
 
-$numVars        = isset($_POST['num_vars'])        ? (int)$_POST['num_vars']               : 0;
-$numConstraints = isset($_POST['num_constraints']) ? (int)$_POST['num_constraints']          : 0;
-$objective      = isset($_POST['objective'])       ? $_POST['objective']                    : [];
-$constraints    = isset($_POST['constraint'])       ? $_POST['constraint']                   : [];
-$rhs            = isset($_POST['rhs'])              ? $_POST['rhs']                          : [];
+$numVars        = (int)($_POST['num_vars'] ?? 0);
+$numConstraints = (int)($_POST['num_constraints'] ?? 0);
+$method         = $_POST['method'] ?? 'simpleks';
+$objective      = [];
+foreach (($_POST['objective'] ?? []) as $v) $objective[] = (float)str_replace(',', '.', $v);
 
-if ($numVars < 1 || $numConstraints < 1) {
-    $_SESSION['error'] = 'Jumlah variabel dan kendala minimal 1.';
-    header('Location: index.php');
-    exit;
-}
-
-$fungsiTujuan = [];
-foreach ($objective as $val) {
-    $fungsiTujuan[] = (float)str_replace(',', '.', $val);
-}
-
-$kendala = [];
-foreach ($constraints as $row) {
-    $baris = [];
-    foreach ($row as $val) {
-        $baris[] = (float)str_replace(',', '.', $val);
-    }
-    $kendala[] = $baris;
+$constraints = [];
+foreach (($_POST['constraint'] ?? []) as $row) {
+    $b = [];
+    foreach ($row as $v) $b[] = (float)str_replace(',', '.', $v);
+    $constraints[] = $b;
 }
 
 $nilaiKanan = [];
-foreach ($rhs as $val) {
-    $nilaiKanan[] = (float)str_replace(',', '.', $val);
+foreach (($_POST['rhs'] ?? []) as $v) $nilaiKanan[] = (float)str_replace(',', '.', $v);
+
+if ($method === 'grafik') {
+    if ($numVars != 2 || count($objective) != 2) {
+        $_SESSION['error'] = 'Metode Grafik hanya mendukung 2 variabel.';
+        header('Location: index.php');
+        exit;
+    }
+
+    require_once 'classes/Grafik.php';
+    $g = new Grafik($objective, $constraints, $nilaiKanan);
+    $ok = $g->hitung();
+
+    $_SESSION['hasilGrafik'] = [
+        'berhasil' => $ok, 'fungsiTujuan' => $objective, 'kendala' => $constraints,
+        'nilaiKanan' => $nilaiKanan, 'titikPojok' => $g->getTitikPojok(),
+        'solusi' => $g->getSolusi(), 'nilaiZ' => $g->getNilaiZ(),
+        'maxX1' => $g->getMax(0), 'maxX2' => $g->getMax(1),
+    ];
+    header('Location: result_grafik.php');
+} else {
+    if (count($objective) != $numVars || count($constraints) != $numConstraints || count($nilaiKanan) != $numConstraints) {
+        $_SESSION['error'] = 'Data tidak lengkap.';
+        header('Location: index.php');
+        exit;
+    }
+
+    require_once 'classes/Simplex.php';
+    $s = new Simplex($numVars, $numConstraints, $objective, $constraints, $nilaiKanan);
+    $ok = $s->hitung();
+
+    $_SESSION['hasil'] = [
+        'berhasil' => $ok, 'numVars' => $numVars, 'numConstraints' => $numConstraints,
+        'fungsiTujuan' => $objective, 'kendala' => $constraints, 'nilaiKanan' => $nilaiKanan,
+        'tabelIterasi' => $s->getTabelIterasi(), 'solusi' => $s->getSolusi(),
+        'nilaiZ' => $s->getNilaiZ(), 'optimal' => $s->isOptimal(), 'headerKolom' => $s->getHeaderKolom(),
+    ];
+    header('Location: result.php');
 }
-
-if (count($fungsiTujuan) != $numVars) {
-    $_SESSION['error'] = 'Jumlah koefisien fungsi tujuan tidak sesuai.';
-    header('Location: index.php');
-    exit;
-}
-
-if (count($kendala) != $numConstraints) {
-    $_SESSION['error'] = 'Jumlah baris kendala tidak sesuai.';
-    header('Location: index.php');
-    exit;
-}
-
-if (count($nilaiKanan) != $numConstraints) {
-    $_SESSION['error'] = 'Jumlah nilai kanan tidak sesuai.';
-    header('Location: index.php');
-    exit;
-}
-
-require_once 'classes/Simplex.php';
-
-$simplex = new Simplex($numVars, $numConstraints, $fungsiTujuan, $kendala, $nilaiKanan);
-$berhasil = $simplex->hitung();
-
-$_SESSION['hasil'] = [
-    'berhasil'       => $berhasil,
-    'numVars'        => $numVars,
-    'numConstraints' => $numConstraints,
-    'fungsiTujuan'   => $fungsiTujuan,
-    'kendala'        => $kendala,
-    'nilaiKanan'     => $nilaiKanan,
-    'tabelIterasi'   => $simplex->getTabelIterasi(),
-    'solusi'         => $simplex->getSolusi(),
-    'nilaiZ'         => $simplex->getNilaiZ(),
-    'optimal'        => $simplex->isOptimal(),
-    'headerKolom'    => $simplex->getHeaderKolom(),
-];
-
-header('Location: result.php');
 exit;

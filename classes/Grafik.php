@@ -116,32 +116,18 @@ class Grafik {
         return [round($p[0], 10), round($p[1], 10)];
     }
 
-    public function getMaxX1() {
+    public function getMax($col) {
         $max = 0;
         for ($i = 0; $i < $this->m; $i++) {
-            if ($this->kendala[$i][0] > 0) {
-                $val = $this->nilaiKanan[$i] / $this->kendala[$i][0];
+            if ($this->kendala[$i][$col] > 0) {
+                $val = $this->nilaiKanan[$i] / $this->kendala[$i][$col];
                 if ($val > $max) $max = $val;
             }
         }
         return $max * 1.15;
     }
 
-    public function getMaxX2() {
-        $max = 0;
-        for ($i = 0; $i < $this->m; $i++) {
-            if ($this->kendala[$i][1] > 0) {
-                $val = $this->nilaiKanan[$i] / $this->kendala[$i][1];
-                if ($val > $max) $max = $val;
-            }
-        }
-        return $max * 1.15;
-    }
-
-    public function getTitikPojok()  { return $this->titikPojok; }
-    public function getSolusi()      { return $this->solusi; }
-    public function getNilaiZ()      { return $this->nilaiZ; }
-    public function getKendala()     { return $this->kendala; }
-    public function getNilaiKanan()  { return $this->nilaiKanan; }
-    public function getFungsiTujuan(){ return $this->fungsiTujuan; }
+    public function getTitikPojok() { return $this->titikPojok; }
+    public function getSolusi()     { return $this->solusi; }
+    public function getNilaiZ()     { return $this->nilaiZ; }
 }

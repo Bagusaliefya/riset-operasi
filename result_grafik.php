@@ -8,12 +8,7 @@ if (!isset($_SESSION['hasilGrafik'])) {
 
 $hasil = $_SESSION['hasilGrafik'];
 
-function formatAngka($nilai) {
-    if (abs($nilai - round($nilai)) < 1e-6) {
-        return number_format(round($nilai), 0, ',', '');
-    }
-    return number_format($nilai, 2, ',', '');
-}
+require_once 'includes/helpers.php';
 
 $fungsiTujuan = $hasil['fungsiTujuan'];
 $kendala      = $hasil['kendala'];

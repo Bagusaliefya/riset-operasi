@@ -250,13 +250,8 @@ class Simplex {
         return $header;
     }
 
-    public function getTabelIterasi()   { return $this->tabelIterasi; }
-    public function getSolusi()         { return $this->solusi; }
-    public function getNilaiZ()         { return $this->nilaiZ; }
-    public function isOptimal()         { return $this->optimal; }
-    public function getJumlahVariabel() { return $this->n; }
-    public function getJumlahKendala()  { return $this->m; }
-    public function getFungsiTujuan()   { return $this->fungsiTujuan; }
-    public function getKendala()        { return $this->kendala; }
-    public function getNilaiKanan()     { return $this->nilaiKanan; }
+    public function getTabelIterasi() { return $this->tabelIterasi; }
+    public function getSolusi()       { return $this->solusi; }
+    public function getNilaiZ()       { return $this->nilaiZ; }
+    public function isOptimal()       { return $this->optimal; }
 }

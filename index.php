@@ -103,7 +103,7 @@ unset($_SESSION['hasilGrafik']);
                             <h5 class="mb-0 fw-bold">Isi Koefisien</h5>
                         </div>
 
-                        <form id="problemForm" method="POST" novalidate>
+                        <form id="problemForm" method="POST" action="process.php" novalidate>
                             <input type="hidden" name="method" id="hiddenMethod">
                             <input type="hidden" name="num_vars" id="hiddenNumVars">
                             <input type="hidden" name="num_constraints" id="hiddenNumConstraints">
