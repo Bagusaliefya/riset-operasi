@@ -1,15 +1,18 @@
 <?php
 session_start();
 
+// Cek apakah ada hasil perhitungan
 if (!isset($_SESSION['hasil'])) {
     header('Location: index.php');
     exit;
 }
 
+// Ambil hasil dari session
 $hasil = $_SESSION['hasil'];
 
 require_once 'includes/helpers.php';
 
+// Ekstrak data untuk ditampilkan
 $numVars        = $hasil['numVars'];
 $numConstraints = $hasil['numConstraints'];
 $fungsiTujuan   = $hasil['fungsiTujuan'];
@@ -84,6 +87,7 @@ $berhasil       = $hasil['berhasil'];
             </div>
 
             <?php if (!$berhasil): ?>
+                <!-- TAMPILAN: Masalah unbounded (tidak ada solusi optimal) -->
                 <div class="card mb-4">
                     <div class="card-body text-center py-5">
                         <i class="bi bi-exclamation-triangle text-warning fs-1 mb-3 d-block"></i>
@@ -93,6 +97,7 @@ $berhasil       = $hasil['berhasil'];
                 </div>
             <?php else: ?>
 
+                <!-- TAMPILAN: Tabel iterasi simpleks -->
                 <?php foreach ($tabelIterasi as $index => $iter): ?>
                     <?php
                     $tabel         = $iter['tabel'];
@@ -178,6 +183,7 @@ $berhasil       = $hasil['berhasil'];
                             </div>
 
                             <?php if (!$isOptimal && !$isUnbounded): ?>
+                                <!-- TAMPILAN: Informasi pivot untuk iterasi ini -->
                                 <div class="pivot-info-box mt-4">
                                     <div class="row g-3">
                                         <div class="col-md-6">
@@ -246,6 +252,7 @@ $berhasil       = $hasil['berhasil'];
 
                 <?php endforeach; ?>
 
+                <!-- TAMPILAN: Solusi optimal -->
                 <div class="card mb-4">
                     <div class="card-header bg-gradient-success text-white d-flex align-items-center gap-2 py-3">
                         <i class="bi bi-trophy-fill fs-5"></i>

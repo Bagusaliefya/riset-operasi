@@ -1,5 +1,6 @@
 <?php
 session_start();
+// Bersihkan hasil perhitungan sebelumnya
 unset($_SESSION['hasil']);
 unset($_SESSION['hasilGrafik']);
 ?>
@@ -40,6 +41,7 @@ unset($_SESSION['hasilGrafik']);
                         <?php unset($_SESSION['error']); ?>
                     <?php endif; ?>
 
+                    <!-- PROSES 1: Pilih metode perhitungan -->
                     <div class="d-flex justify-content-center mb-4">
                         <div class="btn-group" role="group">
                             <input type="radio" class="btn-check" name="method" id="methodSimpleks" value="simpleks" checked>
@@ -54,6 +56,7 @@ unset($_SESSION['hasilGrafik']);
                     </div>
 
                     <div id="langkahAwal">
+                        <!-- PROSES 2: Input ukuran masalah (jumlah variabel & kendala) -->
                         <div class="d-flex align-items-center mb-3">
                             <span class="badge bg-primary rounded-pill me-2 px-3 py-2">1</span>
                             <h5 class="mb-0 fw-bold">Tentukan Ukuran Masalah</h5>
@@ -98,6 +101,7 @@ unset($_SESSION['hasilGrafik']);
                     <div id="formContainer" style="display: none;">
                         <hr class="my-4 opacity-25">
 
+                        <!-- PROSES 3: Input koefisien fungsi tujuan dan kendala -->
                         <div class="d-flex align-items-center mb-3">
                             <span class="badge bg-primary rounded-pill me-2 px-3 py-2">2</span>
                             <h5 class="mb-0 fw-bold">Isi Koefisien</h5>
@@ -138,6 +142,7 @@ unset($_SESSION['hasilGrafik']);
                                 <button type="button" id="btnBack" class="btn btn-outline-secondary order-2 order-md-1">
                                     <i class="bi bi-arrow-left me-1"></i> Kembali
                                 </button>
+                                <!-- PROSES 4: Submit form ke process.php -->
                                 <button type="submit" class="btn btn-success btn-lg px-5 order-1 order-md-2">
                                     <i class="bi bi-calculator me-2"></i>
                                     Hitung Solusi Optimal

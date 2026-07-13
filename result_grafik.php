@@ -1,15 +1,18 @@
 <?php
 session_start();
 
+// Cek apakah ada hasil perhitungan grafik
 if (!isset($_SESSION['hasilGrafik'])) {
     header('Location: index.php');
     exit;
 }
 
+// Ambil hasil dari session
 $hasil = $_SESSION['hasilGrafik'];
 
 require_once 'includes/helpers.php';
 
+// Ekstrak data untuk ditampilkan
 $fungsiTujuan = $hasil['fungsiTujuan'];
 $kendala      = $hasil['kendala'];
 $nilaiKanan   = $hasil['nilaiKanan'];
@@ -21,6 +24,7 @@ $maxX2        = $hasil['maxX2'];
 $berhasil     = $hasil['berhasil'];
 $numConst     = count($kendala);
 
+// Siapkan data untuk grafik JavaScript
 $graphData = [
     'constraints' => [],
     'cornerPoints' => [],
@@ -30,6 +34,7 @@ $graphData = [
     'objCoeffs' => $fungsiTujuan,
 ];
 
+// Konversi kendala ke format JSON untuk grafik
 for ($i = 0; $i < $numConst; $i++) {
     $graphData['constraints'][] = [
         'a1' => $kendala[$i][0],
@@ -38,6 +43,7 @@ for ($i = 0; $i < $numConst; $i++) {
     ];
 }
 
+// Konversi titik pojok ke format JSON untuk grafik
 foreach ($titikPojok as $p) {
     $z = $fungsiTujuan[0] * $p[0] + $fungsiTujuan[1] * $p[1];
     $graphData['cornerPoints'][] = [
@@ -102,6 +108,7 @@ foreach ($titikPojok as $p) {
             </div>
 
             <?php if (!$berhasil): ?>
+                <!-- TAMPILAN: Tidak ada solusi -->
                 <div class="card mb-4">
                     <div class="card-body text-center py-5">
                         <i class="bi bi-exclamation-triangle text-warning fs-1 mb-3 d-block"></i>
@@ -117,6 +124,7 @@ foreach ($titikPojok as $p) {
                     <span class="fw-bold">Grafik</span>
                 </div>
                 <div class="card-body text-center">
+                    <!-- TAMPILAN: Grafik daerah layak (di-render oleh grafik.js) -->
                     <canvas id="graphCanvas" width="700" height="550"
                             style="max-width:100%; height:auto; border:1px solid #e2e8f0; border-radius:var(--radius-sm);">
                     </canvas>
@@ -131,6 +139,7 @@ foreach ($titikPojok as $p) {
                             <span class="fw-bold">Titik Pojok</span>
                         </div>
                         <div class="card-body p-0">
+                            <!-- TAMPILAN: Tabel titik pojok dan nilai Z -->
                             <div class="table-responsive">
                                 <table class="table table-hover mb-0">
                                     <thead class="table-light">
@@ -174,6 +183,7 @@ foreach ($titikPojok as $p) {
                             <span class="fw-bold">Solusi Optimal</span>
                         </div>
                         <div class="card-body d-flex flex-column justify-content-center text-center">
+                            <!-- TAMPILAN: Nilai optimal X1, X2, dan Z -->
                             <div class="solution-card mb-2">
                                 <div class="var-name">X₁</div>
                                 <div class="var-value"><?= formatAngka($solusi['X1']) ?></div>

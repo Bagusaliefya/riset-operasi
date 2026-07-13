@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Kelas Simplex - Algoritma Simpleks untuk Pemrograman Linier
+ * 
+ * Alur proses:
+ * 1. Inisialisasi tabel awal (tabel simpleks)
+ * 2. Cari kolom pivot (variabel masuk) - nilai paling negatif di baris Z
+ * 3. Cari baris pivot (variabel keluar) - ratio test terkecil
+ * 4. Lakukan pivot (operasi baris elementer)
+ * 5. Ulangi sampai optimal (tidak ada nilai negatif di baris Z)
+ */
 class Simplex {
     private $n;
     private $m;
@@ -16,32 +26,52 @@ class Simplex {
     private $optimal = false;
 
     public function __construct($n, $m, $fungsiTujuan, $kendala, $nilaiKanan) {
-        $this->n = $n;
-        $this->m = $m;
-        $this->totalKolom = $n + $m + 1;
+        $this->n = $n; // jumlah variabel keputusan
+        $this->m = $m; // jumlah kendala
+        $this->totalKolom = $n + $m + 1; // total kolom = variabel + slack + RHS
         $this->fungsiTujuan = $fungsiTujuan;
         $this->kendala = $kendala;
         $this->nilaiKanan = $nilaiKanan;
     }
 
+    /**
+     * PROSES UTAMA: Algoritma Simpleks
+     * 
+     * Langkah-langkah:
+     * 1. Buat tabel awal dari data input
+     * 2. Inisialisasi variabel dasar (slack variables)
+     * 3. Loop sampai optimal:
+     *    a. Cari kolom pivot (variabel masuk)
+     *    b. Cari baris pivot (variabel keluar) dengan ratio test
+     *    c. Jika unbounded (tidak ada baris pivot), return false
+     *    d. Simpan state iterasi untuk ditampilkan
+     *    e. Lakukan operasi pivot
+     * 4. Ekstrak solusi dari tabel akhir
+     */
     public function hitung() {
+        // Langkah 1: Buat tabel awal
         $tabel = $this->buatTabelAwal();
 
+        // Langkah 2: Inisialisasi variabel dasar (S1, S2, ...)
         for ($i = 0; $i < $this->m; $i++) {
             $this->variabelDasar[$i] = 'S' . ($i + 1);
         }
 
         $this->tabelIterasi = [];
 
+        // Langkah 3: Loop algoritma simpleks
         while (true) {
+            // 3a: Cari kolom pivot (variabel masuk)
             $kolPivot = $this->cariKolomPivot($tabel);
             $optimal = ($kolPivot === null);
 
             if (!$optimal) {
+                // 3b: Cari baris pivot (variabel keluar) dengan ratio test
                 $hasilRatio = $this->cariBarisPivot($tabel, $kolPivot);
                 $barPivot = $hasilRatio['barisPivot'];
                 $rasioValues = $hasilRatio['rasio'];
 
+                // 3c: Jika tidak ada baris pivot, masalah unbounded
                 if ($barPivot === null) {
                     $this->tabelIterasi[] = [
                         'tabel'          => $tabel,
@@ -63,6 +93,7 @@ class Simplex {
                 $varKeluar   = null;
             }
 
+            // 3d: Simpan state iterasi (untuk ditampilkan di result.php)
             $this->tabelIterasi[] = [
                 'tabel'          => $tabel,
                 'optimal'        => $optimal,
@@ -77,16 +108,25 @@ class Simplex {
 
             if ($optimal) break;
 
+            // 3e: Lakukan operasi pivot
             $tabel = $this->lakukanPivot($tabel, $barPivot, $kolPivot);
             $this->variabelDasar[$barPivot] = $varMasuk;
         }
 
+        // Langkah 4: Ekstrak solusi dari tabel akhir
         $this->ekstrakSolusi($tabel);
         $this->optimal = true;
 
         return true;
     }
 
+    /**
+     * PROSES: Buat tabel simpleks awal
+     * 
+     * Struktur tabel:
+     * - Baris 0 s/d m-1: Koefisien kendala + slack variables + RHS
+     * - Baris m: Koefisien fungsi tujuan (negatif karena maksimasi)
+     */
     private function buatTabelAwal() {
         $tabel = [];
 
@@ -121,6 +161,12 @@ class Simplex {
         return $tabel;
     }
 
+    /**
+     * PROSES: Cari kolom pivot (variabel masuk)
+     * 
+     * Aturan: Pilih kolom dengan nilai paling negatif di baris Z
+     * Jika tidak ada nilai negatif, maka solusi sudah optimal
+     */
     private function cariKolomPivot($tabel) {
         $barisZ = $tabel[$this->m];
         $kolPivot = null;
@@ -136,6 +182,13 @@ class Simplex {
         return $kolPivot;
     }
 
+    /**
+     * PROSES: Cari baris pivot (variabel keluar) dengan ratio test
+     * 
+     * Aturan: Bagi RHS dengan koefisien kolom pivot (hanya jika > 0)
+     * Pilih baris dengan rasio terkecil
+     * Jika semua koefisien <= 0, masalah unbounded
+     */
     private function cariBarisPivot($tabel, $kolPivot) {
         $barPivot = null;
         $minRatio = INF;
@@ -170,6 +223,14 @@ class Simplex {
         return ['barisPivot' => $barPivot, 'rasio' => $rasio];
     }
 
+    /**
+     * PROSES: Lakukan operasi pivot (operasi baris elementer)
+     * 
+     * Langkah:
+     * 1. Bagi baris pivot dengan elemen pivot (sehingga elemen pivot jadi 1)
+     * 2. Eliminasi elemen lain di kolom pivot (jadikan 0)
+     * 3. Bulatkan hasil untuk stabilitas numerik
+     */
     private function lakukanPivot($tabel, $barPivot, $kolPivot) {
         $totalKolom = $this->totalKolom;
         $tabelBaru = $tabel;
@@ -197,6 +258,14 @@ class Simplex {
         return $tabelBaru;
     }
 
+    /**
+     * PROSES: Ekstrak solusi dari tabel simpleks akhir
+     * 
+     * Cara kerja:
+     * - Untuk setiap kolom, cek apakah ada satu nilai 1 dan sisanya 0
+     * - Jika ya, kolom tersebut adalah variabel dasar
+     * - Nilai RHS pada baris tersebut adalah nilai variabel
+     */
     private function ekstrakSolusi($tabel) {
         for ($j = 0; $j < $this->n; $j++) {
             $this->solusi['X' . ($j + 1)] = 0;
